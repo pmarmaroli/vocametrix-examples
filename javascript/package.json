@@ -1,0 +1,19 @@
+{
+  "name": "vocametrix-examples-js",
+  "version": "1.0.0",
+  "description": "JavaScript / Node.js examples for the Vocametrix API",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "lint": "eslint *.js workflows/*.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "eventsource": "^2.0.2",
+    "form-data": "^4.0.0",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}
