@@ -23,7 +23,6 @@ const BASE_URL = 'https://platform.vocametrix.com';
 async function assignFileId(audioPath) {
   const form = new FormData();
   form.append('audio', fs.createReadStream(audioPath));
-  form.append('email', 'user@example.com');
   const res = await fetch(`${BASE_URL}/api/assignFileId`, {
     method: 'POST',
     headers: { 'X-API-Key': API_KEY, ...form.getHeaders() },

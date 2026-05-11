@@ -26,7 +26,6 @@ const AVQI_THRESHOLD = 2.97;
 async function assignFileId(audioPath) {
   const form = new FormData();
   form.append('audio', fs.createReadStream(audioPath));
-  form.append('email', 'user@example.com');
 
   const res = await fetch(`${BASE_URL}/api/assignFileId`, {
     method: 'POST',

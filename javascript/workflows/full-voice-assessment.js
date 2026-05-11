@@ -23,7 +23,6 @@ async function assignFileId(audioPath, label) {
   console.log(`  Uploading ${label}...`);
   const form = new FormData();
   form.append('audio', fs.createReadStream(audioPath));
-  form.append('email', 'user@example.com');
   const res = await fetch(`${BASE_URL}/api/assignFileId`, {
     method: 'POST',
     headers: { ...HEADERS, ...form.getHeaders() },
@@ -51,8 +50,8 @@ async function buildReport(svPath, csPath) {
     avqi: () => getEndpoint('/api/calculate-avqi', csId ? { svFileId: svId, csFileId: csId } : { svFileId: svId }),
     dsi: () => getEndpoint('/api/calculate-dsi', { svFileId: svId }),
     cpp: () => getEndpoint('/api/calculate-cpp', { svFileId: svId }),
-    hnr: () => getEndpoint('/api/calculate-hnr', { svFileId: svId }),
-    jitter_shimmer: () => getEndpoint('/api/calculate-jitter-shimmer', { svFileId: svId }),
+    hnr: () => getEndpoint('/api/calculate-hnr-multiband', { svFileId: svId }),
+    jitter_shimmer: () => getEndpoint('/api/jitter-shimmer', { svFileId: svId }),
   };
 
   const results = {};

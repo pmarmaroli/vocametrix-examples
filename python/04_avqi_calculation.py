@@ -8,7 +8,7 @@ Reference: Maryn & Weenink (2015), Barsties & Maryn (2015)
   AVQI < 2.97  → normal voice quality
   AVQI ≥ 2.97  → dysphonic
 
-Upload pattern: POST /api/assignFileId (multipart: audio + email) → GET /api/calculate-avqi
+Upload pattern: POST /api/assignFileId (multipart: audio) → GET /api/calculate-avqi
 Auth: X-API-Key header
 
 Usage:
@@ -35,7 +35,6 @@ def assign_file_id(audio_path: str) -> str:
             f'{BASE_URL}/api/assignFileId',
             headers=HEADERS,
             files={'audio': f},
-            data={'email': 'user@example.com'},
         )
     r.raise_for_status()
     return r.json()['fileId']

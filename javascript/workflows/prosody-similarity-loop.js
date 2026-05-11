@@ -21,7 +21,6 @@ const HEADERS = { 'X-API-Key': API_KEY };
 async function assignFileId(audioPath) {
   const form = new FormData();
   form.append('audio', fs.createReadStream(audioPath));
-  form.append('email', 'user@example.com');
   const res = await fetch(`${BASE_URL}/api/assignFileId`, {
     method: 'POST',
     headers: { ...HEADERS, ...form.getHeaders() },

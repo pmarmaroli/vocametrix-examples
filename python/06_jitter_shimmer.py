@@ -36,7 +36,6 @@ def assign_file_id(audio_path: str) -> str:
             f'{BASE_URL}/api/assignFileId',
             headers=HEADERS,
             files={'audio': f},
-            data={'email': 'user@example.com'},
         )
     r.raise_for_status()
     return r.json()['fileId']

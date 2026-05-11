@@ -32,7 +32,6 @@ def assign_file_id(audio_path: str, label: str) -> str:
             f'{BASE_URL}/api/assignFileId',
             headers=HEADERS,
             files={'audio': f},
-            data={'email': 'user@example.com'},
         )
     r.raise_for_status()
     return r.json()['fileId']
@@ -60,11 +59,11 @@ def run_cpp(sv_id: str) -> dict:
 
 
 def run_hnr(sv_id: str) -> dict:
-    return get('/api/calculate-hnr', {'svFileId': sv_id})
+    return get('/api/calculate-hnr-multiband', {'svFileId': sv_id})
 
 
 def run_jitter_shimmer(sv_id: str) -> dict:
-    return get('/api/calculate-jitter-shimmer', {'svFileId': sv_id})
+    return get('/api/jitter-shimmer', {'svFileId': sv_id})
 
 
 def build_report(sv_path: str, cs_path: str | None) -> dict:
