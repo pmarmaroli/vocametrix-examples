@@ -25,9 +25,9 @@ HEADERS = {'X-API-Key': API_KEY}
 
 
 def synthesize(text: str, locale: str, voice: str | None = None) -> dict:
-    payload = {'text': text, 'locale': locale}
+    payload = {'text': text, 'language': locale}
     if voice:
-        payload['voiceName'] = voice
+        payload['voice'] = voice
 
     r = requests.post(f'{BASE_URL}/api/text-to-speech', headers=HEADERS, json=payload)
     r.raise_for_status()

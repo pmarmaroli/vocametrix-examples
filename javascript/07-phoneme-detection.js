@@ -5,12 +5,12 @@
  * Supported languages: French (fr), Estonian (et).
  * Response keys are lowercase_snake_case (Python-backed service).
  *
- * Upload pattern: POST /api/assignFileId → POST /api/classify-phoneme
+ * Upload pattern: POST /api/assignFileId → POST /api/analyze-phonemes-live
  * Auth: X-API-Key header
  *
  * Usage:
  *   node 07-phoneme-detection.js path/to/audio.wav
- *   node 07-phoneme-detection.js audio.wav --language et
+ *   node 07-phoneme-detection.js audio.wav --language et-EE
  */
 
 import fs from 'fs';
@@ -32,14 +32,14 @@ async function assignFileId(audioPath) {
   return (await res.json()).fileId;
 }
 
-async function detectPhoneme(audioPath, language = 'fr') {
+async function detectPhoneme(audioPath, language = 'fr-FR') {
   const fileId = await assignFileId(audioPath);
-  const res = await fetch(`${BASE_URL}/api/classify-phoneme`, {
+  const res = await fetch(`${BASE_URL}/api/analyze-phonemes-live`, {
     method: 'POST',
     headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fileId, language }),
   });
-  if (!res.ok) throw new Error(`classify-phoneme failed: ${await res.text()}`);
+  if (!res.ok) throw new Error(`analyze-phonemes-live failed: ${await res.text()}`);
   return res.json();
 }
 
@@ -67,6 +67,6 @@ if (args.length === 0) {
 }
 const audioPath = args[0];
 const langIdx = args.indexOf('--language');
-const language = langIdx !== -1 ? args[langIdx + 1] : 'fr';
+const language = langIdx !== -1 ? args[langIdx + 1] : 'fr-FR';
 
 detectPhoneme(audioPath, language).then(printResults).catch(err => { console.error(err.message); process.exit(1); });

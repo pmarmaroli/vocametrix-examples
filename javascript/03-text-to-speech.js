@@ -20,8 +20,8 @@ const BASE_URL = 'https://platform.vocametrix.com';
 const HEADERS = { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' };
 
 async function synthesize(text, locale, voice) {
-  const body = { text, locale };
-  if (voice) body.voiceName = voice;
+  const body = { text, language: locale };
+  if (voice) body.voice = voice;
 
   const res = await fetch(`${BASE_URL}/api/text-to-speech`, {
     method: 'POST',

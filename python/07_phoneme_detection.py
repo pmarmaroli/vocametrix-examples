@@ -7,7 +7,7 @@ and top-N alternative predictions.
 Supported languages: French, Estonian
 Response keys use lowercase_snake_case (Python-backed service).
 
-Upload pattern: POST /api/assignFileId → POST /api/classify-phoneme
+Upload pattern: POST /api/assignFileId → POST /api/analyze-phonemes-live
 Auth: X-API-Key header
 
 Usage:
@@ -37,10 +37,10 @@ def assign_file_id(audio_path: str) -> str:
     return r.json()['fileId']
 
 
-def detect_phoneme(audio_path: str, language: str = 'fr') -> dict:
+def detect_phoneme(audio_path: str, language: str = 'fr-FR') -> dict:
     file_id = assign_file_id(audio_path)
     r = requests.post(
-        f'{BASE_URL}/api/classify-phoneme',
+        f'{BASE_URL}/api/analyze-phonemes-live',
         headers=HEADERS,
         json={'fileId': file_id, 'language': language},
     )
@@ -70,8 +70,8 @@ def print_results(results: dict):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Phoneme detection')
     parser.add_argument('audio', help='Path to WAV file')
-    parser.add_argument('--language', default='fr', choices=['fr', 'et'],
-                        help='Language code: fr (French) or et (Estonian)')
+    parser.add_argument('--language', default='fr-FR', choices=['fr-FR', 'et-EE'],
+                        help='Language code: fr-FR (French) or et-EE (Estonian)')
     args = parser.parse_args()
 
     results = detect_phoneme(args.audio, args.language)
