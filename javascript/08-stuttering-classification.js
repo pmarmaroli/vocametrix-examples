@@ -7,7 +7,8 @@
  *   Fetch GET /api/therapy-result/:id
  *
  * Server timeout: 600 seconds.
- * Response keys are lowercase_snake_case (Python-backed service).
+ * The result has a `classification` array of ~4s blocks, each with a stutter
+ * `primaryType`, a `transcription`, and a `words` array of per-word timestamps.
  *
  * Upload pattern: POST /api/assignFileId → POST /api/classify-stuttering
  * Auth: X-API-Key header
@@ -46,6 +47,8 @@ async function classifyStuttering(audioPath) {
   const startRes = await fetch(`${BASE_URL}/api/classify-stuttering`, {
     method: 'POST',
     headers: { ...HEADERS, 'Content-Type': 'application/json' },
+    // Optional flags: transcribe (default true → adds per-word timestamps),
+    // includePhonemes (default false → set true for per-block phonetic output).
     body: JSON.stringify({ fileId }),
   });
   if (!startRes.ok) throw new Error(`classify-stuttering failed: ${await startRes.text()}`);
@@ -61,9 +64,9 @@ async function classifyStuttering(audioPath) {
     statusRes.raise_for_status?.();
     const status = await statusRes.json();
     const state = status.status ?? status.state ?? '';
-    console.log(`  [${Math.round(elapsed / 1000)}s] status: ${state}`);
+    console.log(`  [${Math.round(elapsed / 1000)}s] ${state} ${status.progress_percent ?? status.progress ?? ''}`);
 
-    if (['completed', 'succeeded', 'done'].includes(state)) break;
+    if (state === 'complete' || status.result_available) break;
     if (['failed', 'error'].includes(state)) throw new Error(`Classification failed: ${JSON.stringify(status)}`);
   }
 
@@ -74,18 +77,21 @@ async function classifyStuttering(audioPath) {
 
 function printResults(results) {
   console.log('\n=== Stuttering Classification Results ===');
-  console.log(`Stuttering detected: ${results.stuttering_detected ?? 'N/A'}`);
-  console.log(`Severity:            ${results.severity ?? 'N/A'}`);
 
-  const events = results.stuttering_events ?? [];
-  if (events.length > 0) {
-    console.log(`\nStuttering events (${events.length} total):`);
-    for (const ev of events.slice(0, 10)) {
-      console.log(`  ${(ev.onset ?? ev.start ?? '?').toFixed?.(2) ?? '?'}s  type=${ev.type ?? '?'}`);
-    }
+  const overall = results.overallClassification ?? {};
+  if (overall.primary_type) {
+    console.log(`Overall: ${overall.primary_type} (${overall.severity ?? '?'}) - `
+      + `${overall.stuttering_percentage ?? '?'}% of speech stuttered`);
   }
-  for (const key of ['fluency_rate', 'speech_rate', 'processed_at']) {
-    if (results[key] !== undefined) console.log(`  ${key}: ${results[key]}`);
+
+  const blocks = results.classification ?? [];
+  console.log(`\nBlocks (${blocks.length}):`);
+  for (const b of blocks) {
+    console.log(`\n  [${b.startTime}s - ${b.stopTime}s]  ${b.primaryType}  |  ${JSON.stringify(b.transcription)}`);
+    // Per-word timestamps (present when transcribe=true, the default).
+    for (const w of b.words ?? []) {
+      console.log(`        ${w.start.toFixed(2)}s - ${w.end.toFixed(2)}s   ${w.word}`);
+    }
   }
 }
 

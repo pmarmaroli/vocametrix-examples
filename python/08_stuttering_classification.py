@@ -7,7 +7,8 @@ Classifies stuttering patterns in speech audio. This is an async endpoint:
   3. Fetch GET /api/therapy-result/:session_id
 
 The server timeout is 600 seconds (CLASSIFY_TIMEOUT_MS env var).
-Response keys use lowercase_snake_case (Python-backed service).
+The result has a ``classification`` array of ~4s blocks, each with a stutter
+``primaryType``, a ``transcription``, and a ``words`` array of per-word timestamps.
 
 Upload pattern: POST /api/assignFileId → POST /api/classify-stuttering (async)
 Auth: X-API-Key header on all endpoints
@@ -48,6 +49,8 @@ def classify_stuttering(audio_path: str) -> dict:
     r = requests.post(
         f'{BASE_URL}/api/classify-stuttering',
         headers=HEADERS,
+        # Optional flags: transcribe (default True -> adds per-word timestamps),
+        # includePhonemes (default False -> set True for per-block phonetic output).
         json={'fileId': file_id},
     )
     r.raise_for_status()
@@ -67,9 +70,10 @@ def classify_stuttering(audio_path: str) -> dict:
         status_r.raise_for_status()
         status = status_r.json()
         state = status.get('status', status.get('state', ''))
-        print(f'  [{elapsed:3d}s] status: {state}')
+        progress = status.get('progress_percent', status.get('progress', ''))
+        print(f'  [{elapsed:3d}s] {state} {progress}')
 
-        if state in ('completed', 'succeeded', 'done'):
+        if state == 'complete' or status.get('result_available'):
             break
         if state in ('failed', 'error'):
             raise RuntimeError(f'Classification failed: {status}')
@@ -84,20 +88,20 @@ def classify_stuttering(audio_path: str) -> dict:
 
 def print_results(results: dict):
     print('\n=== Stuttering Classification Results ===')
-    print(f"Stuttering detected: {results.get('stuttering_detected', 'N/A')}")
-    print(f"Severity:            {results.get('severity', 'N/A')}")
 
-    events = results.get('stuttering_events', [])
-    if events:
-        print(f'\nStuttering events ({len(events)} total):')
-        for ev in events[:10]:
-            onset = ev.get('onset', ev.get('start', '?'))
-            etype = ev.get('type', '?')
-            print(f'  {onset:.2f}s  type={etype}')
+    overall = results.get('overallClassification', {})
+    if overall.get('primary_type'):
+        print(f"Overall: {overall['primary_type']} ({overall.get('severity', '?')}) "
+              f"- {overall.get('stuttering_percentage', '?')}% of speech stuttered")
 
-    for key in ('fluency_rate', 'speech_rate', 'processed_at'):
-        if key in results:
-            print(f"  {key}: {results[key]}")
+    blocks = results.get('classification', [])
+    print(f'\nBlocks ({len(blocks)}):')
+    for b in blocks:
+        print(f"\n  [{b.get('startTime')}s - {b.get('stopTime')}s]  "
+              f"{b.get('primaryType')}  |  {b.get('transcription')!r}")
+        # Per-word timestamps (present when transcribe=True, the default).
+        for w in b.get('words', []):
+            print(f"        {w['start']:.2f}s - {w['end']:.2f}s   {w['word']}")
 
 
 if __name__ == '__main__':
